@@ -1,0 +1,278 @@
+<!DOCTYPE h<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title></title>
+	<style type="text/css">
+		* {
+			padding: 0;
+			margin: 0;
+		}
+		
+		ul {
+			padding-left: 20px;
+		}
+		
+		li {
+			list-style: none;
+		}
+		
+		.tree .cir,.tree .cir1 {
+			display: block;
+			position: relative;
+			text-indent: 2em;
+		}
+		.treeBox .cir,.treeBox .cir1{
+			display: block;
+			position: relative;
+			text-indent: 3em;
+		}
+		.treeBox .cir:after,.tree .cir:after {
+			display: block;
+			content: "";
+			position: absolute;
+			width: 20px;
+			height: 20px;
+			left: 0;
+			top: 0;
+			background: gray;
+			border-radius: 50%;
+		}
+		.treeBox .cir1:after,.tree .cir1:after {
+			position: absolute;
+			content: "";
+			display: block;
+			left: 0;
+			top: 0;
+			width: 20px;
+			height: 20px;
+			background: green;
+			border-radius: 50%;
+		}
+		
+		ul li span {
+			cursor: pointer;
+		}
+	
+		.treeBox .cir:before,.treeBox .cir1:before {
+			position: absolute;
+			display: block;
+			width: 20px;
+			height: 20px;
+			background: blue;
+			left: 1.3em;
+			content: '';
+			top: 0;
+			background: url(img/check.png) no-repeat center;
+			background-size: 80%;
+		}
+		.treeBox .checked:before,.treeBox .checked:before{
+			background: url(img/checked.png) no-repeat center;
+		}
+	</style>
+	<script src="js/jquery-3.2.1 (1).js"></script>
+	<script type="text/javascript" src="js/tree2.js" ></script>
+</head>
+
+<body>
+	<div id="bb" class="tree">
+
+	</div>
+	<div id="box" class="treeBox"></div>
+
+	<script type="text/javascript">
+		//菜单列表html
+		var menuArry = [{
+				id: 1,
+				name: "办公管理",
+				pid: 0,
+				open: false
+			},
+			{
+				id: 7,
+				name: "用户角色",
+				pid: 6
+			},
+			{
+				id: 8,
+				name: "菜单设置1",
+				pid: 6,
+				open: false
+			},
+			{
+				id: 81,
+				name: "菜单设置2",
+				pid: 1,
+				open: false
+			},
+			{
+				id: 82,
+				name: "菜单设置3",
+				pid: 81
+			},
+			{
+				id: 83,
+				name: "菜单设置4",
+				pid: 82
+			},
+			{
+				id: 84,
+				name: "菜单设置5",
+				pid: 83
+			},
+			{
+				id: 85,
+				name: "菜单设置6",
+				pid: 81
+			},
+			{
+				id: 85,
+				name: "菜单设置7",
+				pid: 810
+			},
+			{
+				id: 2,
+				name: "请假申请",
+				pid: 1,
+				open: true
+			},
+			{
+				id: 3,
+				name: "出差申请",
+				pid: 1,
+				open: true
+			},
+			{
+				id: 4,
+				name: "请假记录",
+				pid: 2,
+				open: true
+			},
+			{
+				id: 5,
+				name: "系统设置",
+				pid: 0,
+				open: false
+			},
+			{
+				id: 6,
+				name: "权限管理",
+				pid: 5,
+				open: false
+			},
+			{
+				id: 111,
+				name: "哈哈",
+				pid: 105,
+				open: true
+			}
+		];
+	var menuArry1 = [{
+				id: 1,
+				name: "办公管理",
+				pid: 0,
+				open: false
+			},
+			{
+				id: 7,
+				name: "用户角色",
+				pid: 6
+			},
+			{
+				id: 8,
+				name: "菜单设置1",
+				pid: 6,
+				open: false
+			},
+			{
+				id: 81,
+				name: "菜单设置2",
+				pid: 1,
+				open: false
+			},
+			{
+				id: 82,
+				name: "菜单设置3",
+				pid: 81
+			},
+			{
+				id: 83,
+				name: "菜单设置4",
+				pid: 82
+			},
+			{
+				id: 84,
+				name: "菜单设置5",
+				pid: 83
+			},
+			{
+				id: 85,
+				name: "菜单设置6",
+				pid: 81
+			},
+			{
+				id: 85,
+				name: "菜单设置7",
+				pid: 810
+			},
+			{
+				id: 2,
+				name: "请假申请",
+				pid: 1,
+				open: true
+			},
+			{
+				id: 3,
+				name: "出差申请",
+				pid: 1,
+				open: true
+			},
+			{
+				id: 4,
+				name: "请假记录",
+				pid: 2,
+				open: true
+			},
+			{
+				id: 5,
+				name: "系统设置",
+				pid: 0,
+				open: false
+			},
+			{
+				id: 6,
+				name: "权限管理",
+				pid: 5,
+				open: false
+			},
+			{
+				id: 111,
+				name: "哈哈",
+				pid: 105,
+				open: true
+			}
+		];
+		var tree=$("#bb").createTree({
+			'nodes': menuArry,
+			"callBack": function(treeNode) {
+				console.log(treeNode);
+				if(treeNode.isParent){
+				}
+			}
+		});
+		var tree1=$("#box").createTree({
+			'nodes': menuArry1,
+			"callBack": function(treeNode) {
+				console.log(treeNode);
+				if(treeNode.isParent){
+//					alert('yes')
+					console.log(tree1.checkArray)
+				}
+			},
+			"checkBox":true
+		});
+		
+	</script>
+</body>
+
+</html>

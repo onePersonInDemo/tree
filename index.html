@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+
+		<script src="js/jquery-1.4.4.min.js"></script>
+		<script src="js/class.js"></script>
+		<title>无标题文档</title>
+		<style>
+			* {
+				margin: 0;
+				padding: 0;
+			}
+			
+			html {
+				color: black;
+			}
+			
+			.calend {
+				width: 200px;
+				height: 40px;
+				background: pink;
+				line-height: 40px;
+				text-align: center;
+				font-size: 20px;
+				position: relative;
+				margin: 100px auto;
+			}
+			
+			.wrap-days,
+			.monthPicker {
+				height: 360px;
+				width: 320px;
+				box-sizing: border-box;
+				border: 1px solid #aaa;
+				position: absolute;
+				left: 0;
+				top: 40px;
+				display: none;
+				flex-wrap: wrap;
+			}
+			
+			.monthPicker {
+				display: flex;
+				justify-content: space-around;
+				align-content: space-around;
+				flex-wrap: wrap;
+				height: 210px;
+				width: 300px;
+				/*display: flex;*/
+			
+			}
+			
+			.everyMonth {
+				width: 60px;
+				height: 40px;
+				border: 1px solid #666;
+				color: #1c94c4;
+				font-weight: bold;
+				border-radius: 6px;
+				cursor: pointer;
+			}
+			
+			.monthHeader0,
+			.monthHeader2 {
+				cursor: pointer;
+			}
+			
+			.monthHeader0:hover,
+			.monthHeader2:hover {
+				font-weight: bold;
+			}
+			
+			.monthHeader1 {
+				cursor: pointer;
+			}
+			
+			.everyMonth:hover,
+			.activeMonth {
+				background: #666;
+				color: #fff;
+			}
+			
+			.monthHeader {
+				width: 100%;
+				height: 30px;
+				display: flex;
+				justify-content: space-around;
+			}
+			
+			.day,.loctionDay {
+				height: 40px;
+				width: 40px;
+				border: 1px solid #d3d3d3;
+				border-radius: 4px;
+				background: #e6e6e6;
+				cursor: pointer;
+			}
+			
+			.day:hover,
+			.activeDay {
+				background: #222;
+				color: #fff;
+			}
+			
+			.day-weekend {
+				display: flex;
+				justify-content: space-around;
+				align-content: space-around;
+			}
+			
+			.weekHeader {
+				width: 100%;
+				height: 56px;
+				background: #ccc;
+				display: flex;
+				justify-content: space-between;
+				/*margin: 0 10px;*/
+				border-radius: 6px;
+				margin-top: 6px;
+				border: 8px solid #fff;
+				box-sizing: border-box;
+				border-radius: 14px;
+			}
+			
+			.weekHeader0 {
+				width: 40px;
+				cursor: pointer;
+			}
+			
+			.weekHeader2 {
+				width: 40px;
+				cursor: pointer;
+			}
+			
+			.weekHeader0:hover,
+			.weekHeader2:hover {
+				font-weight: bold;
+				cursor: pointer;
+			}
+			
+			.daysGroup {
+				display: flex;
+				justify-content: space-around;
+				align-content: space-between;
+				flex-wrap: wrap;
+				height: 230px;
+			}
+			.pickerInput{
+				background: none;
+				border:none;
+				text-align: center;
+			}
+			.wrap-days{
+				z-index: 1111;
+				background: rgb(246, 242, 242)
+			}
+			.monthPicker{
+				z-index: 12222;
+				position: absolute;
+				/*background: red;*/
+			}
+		</style>
+
+	</head>
+
+	<body>
+
+		<div id="calend" class="calend"></div>
+		<button id="day" style="width: 60px;height: 60px;">日</button>
+		<button id="month" style="width: 60px;height: 60px;">月</button>
+		<div id="calend1" class="calend"></div>
+		<button id="day1" style="width: 60px;height: 60px;">日</button>
+		<button id="month1" style="width: 60px;height: 60px;">月</button>
+	</body>
+
+	<script>
+		var DateOne = new Class;
+		DateOne.extend({
+			dateFormat: function(da, format) {
+				var _newDate = new Date(da);
+				var WeekArr = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+				var o = {
+					'M+': _newDate.getMonth() + 1, //month 
+					'd+': _newDate.getDate(), //day 
+					'h+': _newDate.getHours(), //hour 
+					'm+': _newDate.getMinutes(), //minute 
+					's+': _newDate.getSeconds(), //second 
+					'q+': Math.floor((_newDate.getMonth() + 3) / 3), //quarter 
+					'S': _newDate.getMilliseconds(), //millisecond 
+					'E': WeekArr[_newDate.getDay()],
+					'e+': _newDate.getDay()
+				};
+				if(/(y+)/.test(format)) {
+					format = format.replace(RegExp.$1, (_newDate.getFullYear() + "").substr(4 - RegExp.$1.length));
+				};
+				for(var k in o) {
+					if(new RegExp('(' + k + ')').test(format)) {
+						format = format.replace(RegExp.$1, RegExp.$1.length == 1 ? o[k] : ('00' + o[k]).substr(('' + o[k]).length));
+					};
+				};
+				return format;
+			},
+			getDaysInMonth: function(str) {
+				var Year = str.substr(0, 4);
+				var Month = str.substr(5, 2);
+				Month--;
+				var d = new Date(Year, Month, 1);
+				d.setDate(d.getDate() + 32 - d.getDate());
+				return(32 - d.getDate());
+			}
+		})
+		DateOne.include({
+			init: function(ele, opt) {
+				this.element = ele;
+				this.defalut = {
+					currentId: '',
+					type:'month'
+				};
+				this.month = function() {
+					var currentMonth = new Date().getMonth() + 1
+					return currentMonth < 10 ? '0' + currentMonth : currentMonth;
+				};
+				this.currentDate = DateOne.dateFormat(new Date(), 'yyyy-MM-dd');
+				this.option = $.extend(this.defalut, opt);
+			
+				this.type = option.type;
+				this.fn=function(){
+					alert(1)
+				}
+
+			},
+			//判断是否文活跃状态
+			addActive: function(day) {
+		
+				var currentId = this.option.currentId;
+				$(currentId + '>div .daysGroup .day').each(function(i, x) {
+					var currentDay = $(this).attr('date');
+					$(this).removeClass('activeDay');
+					if(day == currentDay) {
+						$(this).addClass('activeDay');
+					}
+
+				})
+
+			},
+			addActiveMonth: function(month) {
+				var currentId = this.option.currentId;
+				$(currentId + '>.monthPicker>.everyMonth').each(function(i, x) {
+					var currentMonth = $(this).attr('month');
+					$(this).removeClass('activeMonth');
+					if(month == currentMonth) {
+						$(this).addClass('activeMonth');
+					}
+				})
+			},
+			createDays: function() {
+				var currentId = this.option.currentId;
+				var count = DateOne.getDaysInMonth(date) + 1;
+				var daysGroup = $(currentId + '>div .daysGroup');
+				daysGroup.html('');
+				var str = '';
+				for(var i = 1; i < count; i++) {
+					var mm = i < 10 ? "0" + i : i;
+					str += '<div class="day" date=' + mm + '>' + i + '</div>';
+				}
+				daysGroup.append(str);
+
+			},
+			//绑定view的
+			bindView: function() {
+				if(this.type == 'day') {
+					$(this.element).html('');
+					$(this.element).append('<input readonly id="'+this.option.currentId+'Input" class="pickerInput" value='+DateOne.dateFormat(new Date(),'yyyy-MM-dd')+'>')
+					$(this.element).append('<div class="wrap-days"></div>');
+					var daysCount = DateOne.getDaysInMonth(this.currentDate);
+					var headerTop = ['<', this.currentDate, '>'];
+					//添加头部日期
+					$(this.element).find(".wrap-days").append('<div class="weekHeader"></div>')
+					var str = '';
+					for(var i = 0; i < headerTop.length; i++) {
+						var className = 'weekHeader' + i;
+						str += '<div class=' + className + '>' + headerTop[i] + '</div>';
+					}
+					$(this.element).find('.weekHeader').append($(str));
+					$(this.element).find('.wrap-days').append('<div class="day-weekend" style="width:100%;height: 40px;"></div>');
+					//添加星期
+					var weeks = ['一', '二', '三', '四', '五', '六', '日'];
+					for(var i = 0; i < weeks.length; i++) {
+						var elweek = '<div>' + weeks[i] + '</div>';
+						$(this.element).find(".day-weekend").append($(elweek));
+					}
+					//添加日期
+					var weekday=DateOne.dateFormat(new Date(),'E');
+					var json={'星期一':1,'星期二':2,'星期三':3,'星期四':4,'星期五':5,'星期六':6,'星期日':7};
+					var weekLength=json[weekday];
+					var str = '<div class="daysGroup">';
+				
+					for(var m=0;m<weekLength+1;m++){
+						str+='<div class="loctionDay"></div>';
+					}
+					
+					for(var i = 1; i < daysCount + 1; i++) {
+						var mm = i < 10 ? "0" + i : i;
+						str += '<div class="day" date=' + mm + '>' + i + '</div>';
+					}
+					var last=42-weekLength-daysCount-1;
+					for(var i=0;i<last;i++){
+						str+='<div class="loctionDay"></div>';
+					}
+					str += '</div>';
+					$(this.element).find('.wrap-days').append($(str)); //添加到日历里面
+				} else if(this.type == 'month') {
+					$(this.element).html('');
+					$(this.element).append('<input class="pickerInput" readonly id="'+this.option.currentId+'Input" value=' + new Date().getFullYear() + '-' + this.month() + '>')
+					$(this.element).append('<div class="monthPicker" style="display: none;"></div>');
+					$(this.element).find('.monthPicker').append('<div class="monthHeader"></div>');
+					var monthArray = ['<', new Date().getFullYear(), '>'];
+					var header = '';
+					for(var i = 0; i < monthArray.length; i++) {
+						header += ('<div class="monthHeader' + i + '">' + monthArray[i] + '</div>')
+					}
+					$(this.element).find('.monthHeader').append($(header))
+					var str = '';
+					for(var i = 1; i < 13; i++) {
+						var mm = i < 10 ? '0' + i : i;
+						str += '<div class="everyMonth" month=' + mm + '>' + i + '月</div>'
+					}
+					$(this.element).find('.monthPicker').append(str);
+
+				}
+			},
+			bindEvent: function() {
+				var currentId = this.option.currentId;
+				var _this = this;
+				//点击切换事件
+				if(this.type == 'day') {
+					$(this.element).bind('click', function() {
+						$(this).find('.wrap-days').toggle();
+						var header = $(currentId + ">.wrap-days>.weekHeader>.weekHeader1");
+						var date1 = header.html();
+						if(date1){
+							var day = date1.substring(8,10);
+							_this.addActive(day); //添加活跃状态
+						}
+						
+						
+						return false;
+					});
+
+					var addDays = function(date) {
+						var count = DateOne.getDaysInMonth(date) + 1;
+						var newDate=date.substr(0,date.length-2)+'01';
+						var currentWeek=new Date(newDate).getDay();
+						
+						var daysGroup = $(currentId + '>div .daysGroup');
+						daysGroup.html('');
+						var str = '';
+						if(currentWeek==0){
+							currentWeek=7
+						}
+						for(var m=0;m<currentWeek-1;m++){
+							str += '<div class="loctionDay" ></div>';
+						}
+						console.log(newDate+currentWeek)
+						for(var i = 1; i < count; i++) {
+							var mm = i < 10 ? "0" + i : i;
+							str += '<div class="day" date=' + mm + '>' + i + '</div>';
+						}
+						var last=42-count-currentWeek;
+						for(var i=0;i<last+2;i++){
+							str+='<div class="loctionDay" ></div>';
+						}
+						daysGroup.append(str);
+					}
+
+					//每天的点击方法
+					$(currentId + '>div .daysGroup').delegate('.day', 'click', function() {
+						var header = $(currentId + ">.wrap-days>.weekHeader>.weekHeader1");
+						var currentDate = $(this).attr('date');
+						var interceptStr = header.html().substr(0, header.html().length - 2);
+						header.html(interceptStr + currentDate)
+						$(currentId + '>input').val(interceptStr + currentDate)
+						_this.addActive(currentDate);
+						_this.fn();
+
+					});
+					//week left点击事件
+					$(currentId + ">.wrap-days>.weekHeader>.weekHeader0").on('click', function() {
+						var header = $(currentId + ">.wrap-days>.weekHeader>.weekHeader1");
+						var year = header.html().substring(0, 4);
+						var month = header.html().substring(5, 7);
+						var day = header.html().substring(header.html().length - 2)
+						month = --month;
+						if(month == 0) {
+							month = 12;
+							--year;
+							header.html(year + '-' + month + '-' + day);
+						} else {
+
+							var mm = header.html().substring(5, 7);
+							if(month < 10) {
+								month = '0' + month;
+							}
+							header.html(year + '-' + month + '-' + day)
+						}
+						$(currentId + '>input').val(year + '-' + month + '-' + day);
+						addDays(year + '-' + month + '-' + day);
+						_this.fn();
+					})
+
+					//week right点击事件
+					$(currentId + ">.wrap-days>.weekHeader>.weekHeader2").on('click', function() {
+						var header = $(currentId + ">.wrap-days>.weekHeader>.weekHeader1");
+						var year = header.html().substring(0, 4);
+						var month = header.html().substring(5, 7);
+						var day = header.html().substring(header.html().length - 2)
+						month = ++month;
+						if(month == 13) {
+							month = '01';
+							++year;
+							header.html(year + '-' + month + '-' + day);
+
+						} else {
+
+							var mm = header.html().substring(5, 7);
+							if(month < 10) {
+								month = '0' + month;
+							}
+							header.html(year + '-' + month + '-' + day)
+						}
+						$(currentId + '>input').val(year + '-' + month + '-' + day);
+
+						addDays(year + '-' + month + '-' + day);
+						_this.fn();
+
+					})
+
+				} else if(this.type == 'month') {
+					_this.addActiveMonth(_this.month())
+					$(this.element).bind('click', function() {
+						$(this).find('.monthPicker').toggle();
+
+						return false;
+					});
+					//左边点击事件
+					$(currentId + ">.monthPicker>.monthHeader>.monthHeader0").on('click', function() {
+						var head = $(currentId + ">.monthPicker>.monthHeader>.monthHeader1");
+						var headMid = head.html();
+						headMid = headMid - 1;
+						head.html(headMid)
+						var currentMonth = null;
+						if($.type(_this.month) == 'function') {
+							currentMonth = _this.month();
+						} else {
+							currentMonth = _this.month;
+						}
+
+						$(currentId).find('>input').val(headMid + '-' + currentMonth);
+						_this.fn();
+					});
+					//右边点击事件
+					$(currentId + ">.monthPicker>.monthHeader>.monthHeader2").on('click', function() {
+						var head = $(currentId + ">.monthPicker>.monthHeader>.monthHeader1");
+						var headMid = head.html();
+						headMid = Number(headMid) + 1;
+						head.html(headMid)
+						var currentMonth = null;
+						if($.type(_this.month) == 'function') {
+							currentMonth = _this.month();
+						} else {
+							currentMonth = _this.month;
+						}
+
+						$(currentId).find('>input').val(headMid + '-' + currentMonth);
+						_this.fn();
+					});
+					//每月的点击事件
+					$(currentId + ">.monthPicker").delegate('.everyMonth', 'click', function() {
+						var month = $(this).attr('month');
+						_this.month = month;
+						_this.addActiveMonth(month);
+						var spanHtml = $(currentId + '>input').val();
+						var year = spanHtml.substr(0, 4);
+						$(currentId + '>input').val(year + '-' + month)
+						_this.fn();
+					})
+
+				}
+
+			}
+		})
+
+		$.fn.myPlugn = function(opt,type,fn) {
+			var ca = new DateOne();
+			ca.init(this, opt);
+			ca.type=type
+			ca.fn=fn;
+			ca.bindView();
+			ca.bindEvent();
+
+		}
+
+		$("#day").click(function(){   //
+		
+			$("#calend").myPlugn({
+				"currentId": "#calend",
+				'type':"day"
+			},'day',function(){
+				alert('当前时间'+$("#calend>input").val())
+				
+			})
+		})
+		$("#month").click(function(){
+			$("#calend").myPlugn({
+				"currentId": "#calend",
+				'type':"month"
+			},'month',function(){
+				alert('当前时间'+$("#calend>input").val())
+			})
+		
+		})
+		
+		$("#day1").click(function(){   //
+			$("#calend1").myPlugn({
+				"currentId": "#calend1",
+				'type':"day"
+			},'day',function(){
+				alert('当前时间'+$("#calend1>input").val())
+			})
+		})
+		$("#month1").click(function(){
+			$("#calend1").myPlugn({
+				"currentId": "#calend1",
+				'type':"month"
+			},'month',function(){
+				alert('当前时间'+$("#calend1>input").val())
+			})
+		
+		})
+	
+		
+	</script>
+
+</html>
